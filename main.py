@@ -3,38 +3,44 @@ import time
 import os
 
 # --- SETTINGS ---
-# In tokens ko aap Railway ke "Variables" tab mein add karenge
 FB_PAGE_ID = os.getenv('FB_PAGE_ID')
 FB_PAGE_ACCESS_TOKEN = os.getenv('FB_PAGE_ACCESS_TOKEN')
-CRICBUZZ_API_URL = "
-a82aedbb32msh60b092ca8d33832p1230d3jsnab12f1b758b9" # Apna API link yahan dalein
+API_KEY = "a82aedbb32msh60b092ca8d33832p1230d3jsnab12f1b758b9"
+URL = "https://cricket-live-data.p.rapidapi.com/match/live"
 
 def get_cricket_score():
+    headers = {
+        "X-RapidAPI-Key": API_KEY,
+        "X-RapidAPI-Host": "cricket-live-data.p.rapidapi.com"
+    }
     try:
-        # Cricbuzz ya kisi bhi API se data uthana
-        response = requests.get(CRICBUZZ_API_URL)
+        response = requests.get(URL, headers=headers)
         data = response.json()
-        # Yahan aap score ko text format mein convert karenge
-        # Misal ke taur par:
-        score_text = f"Live Score Update:\n{data.get('score', 'No live match right now.')}"
-        return score_text
+        
+        if data.get('results'):
+            # Pehla live match uthana
+            match = data['results'][0]
+            series = match.get('series_name', 'Cricket Match')
+            team1 = match.get('home_team_name', 'Team A')
+            team2 = match.get('away_team_name', 'Team B')
+            status = match.get('status', 'Live')
+            
+            score_text = f"🏏 Live Update:\n🏆 {series}\n⚔️ {team1} vs {team2}\n📢 Status: {status}"
+            return score_text
+        return "No live matches at the moment."
     except Exception as e:
         print(f"Error fetching score: {e}")
         return None
 
 def post_to_facebook(message):
-    url = f"https://graph.facebook.com/{FB_PAGE_ID}/feed"
-    payload = {
-        'message': message,
-        'access_token': FB_PAGE_ACCESS_TOKEN
-    }
+    fb_url = f"https://graph.facebook.com/{FB_PAGE_ID}/feed"
+    payload = {'message': message, 'access_token': FB_PAGE_ACCESS_TOKEN}
     try:
-        r = requests.post(url, data=payload)
+        r = requests.post(fb_url, data=payload)
         print(f"Post Response: {r.text}")
     except Exception as e:
         print(f"Error posting to FB: {e}")
 
-# --- MAIN LOOP (Lifetime Run) ---
 if __name__ == "__main__":
     print("Bot is starting...")
     while True:
@@ -43,6 +49,5 @@ if __name__ == "__main__":
             post_to_facebook(score)
             print("Successfully posted at:", time.ctime())
         
-        # 15 Minute Wait (900 seconds)
         print("Waiting for 15 minutes...")
         time.sleep(900)
