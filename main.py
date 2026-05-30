@@ -6,7 +6,8 @@ import os
 # In tokens ko aap Railway ke "Variables" tab mein add karenge
 FB_PAGE_ID = os.getenv('FB_PAGE_ID')
 FB_PAGE_ACCESS_TOKEN = os.getenv('FB_PAGE_ACCESS_TOKEN')
-CRICBUZZ_API_URL = "YOUR_CRICBUZZ_API_LINK_HERE" # Apna API link yahan dalein
+CRICBUZZ_API_URL = "
+a82aedbb32msh60b092ca8d33832p1230d3jsnab12f1b758b9" # Apna API link yahan dalein
 
 def get_cricket_score():
     try:
