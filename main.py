@@ -17,26 +17,21 @@ def get_cricket_score():
         response = requests.get(URL, headers=headers)
         data = response.json()
         
-        if data.get('results'):
-            for match in data['results']:
-                series = match.get('series_name', '')
-                home_team = match.get('home_team_name', '')
-                away_team = match.get('away_team_name', '')
-                
-                # --- TARGET FILTER ---
-                # International keywords + Pakistan/Australia takay match miss na ho
-                target_keywords = ["International", "ICC", "T20I", "ODI", "Test", "World Cup", "Pakistan", "Australia", "PAK", "AUS"]
-                
-                # Check karega ke series ya teams mein koi target lafz hai?
-                is_match_found = any(word.lower() in (series + home_team + away_team).lower() for word in target_keywords)
-                
-                if is_match_found:
-                    status = match.get('status', 'Live')
-                    score_text = f"🏏 Live Match Update:\n🏆 {series}\n⚔️ {home_team} vs {away_team}\n📢 Status: {status}"
-                    return score_text
+        # Logs mein check karne ke liye ke API kya bhej rahi hai
+        print("Raw API Response:", data)
+
+        if data.get('results') and len(data['results']) > 0:
+            # Test ke liye: Pehla jo bhi match mile usay uthao
+            match = data['results'][0]
+            series = match.get('series_name', 'Cricket Series')
+            home = match.get('home_team_name', 'Team A')
+            away = match.get('away_team_name', 'Team B')
+            status = match.get('status', 'Live')
             
-            return "No Target (International/PAK/AUS) matches live right now."
-        return "No live matches at the moment."
+            score_text = f"🏏 Cricket Test Update:\n🏆 {series}\n⚔️ {home} vs {away}\n📢 Status: {status}"
+            return score_text
+            
+        return "API Results list is empty right now."
     except Exception as e:
         print(f"Error fetching score: {e}")
         return None
@@ -46,21 +41,21 @@ def post_to_facebook(message):
     payload = {'message': message, 'access_token': FB_PAGE_ACCESS_TOKEN}
     try:
         r = requests.post(fb_url, data=payload)
-        print(f"Post Response: {r.text}")
+        print(f"FB Post Response: {r.text}")
     except Exception as e:
         print(f"Error posting to FB: {e}")
 
 if __name__ == "__main__":
-    print("Bot is starting with Pakistan/Australia & International Filter...")
+    print("Bot is in TEST MODE - Posting any available match...")
     while True:
         score = get_cricket_score()
         
-        # Sirf tab post karega jab "Live Match Update" wala text milega
-        if score and "Live Match Update" in score:
+        if score and "Cricket Test Update" in score:
             post_to_facebook(score)
-            print("Successfully posted score at:", time.ctime())
+            print("Successfully posted at:", time.ctime())
         else:
             print(f"Skipping: {score}")
         
-        print("Waiting for 30 minutes...")
-        time.sleep(1800) # 30 minutes
+        # Test ke liye 2 minute ka wait taake foran result dikhe
+        print("Waiting 2 minutes...")
+        time.sleep(120)
